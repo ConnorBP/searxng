@@ -203,7 +203,12 @@ def get_result_templates(templates_path):
     for directory, _, files in os.walk(templates_path):
         if directory.endswith('result_templates'):
             for filename in files:
-                f = os.path.join(directory[templates_path_length:], filename)
+                # Jinja/Flask template lookups use POSIX-style paths (forward
+                # slashes). os.path.join uses the OS separator (backslash on
+                # Windows), which then never matches the themed lookup path built
+                # with '/'. Normalize to forward slashes so the set contains the
+                # same form get_result_template queries.
+                f = os.path.join(directory[templates_path_length:], filename).replace(os.sep, '/')
                 result_templates.add(f)
     return result_templates
 

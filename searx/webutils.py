@@ -189,7 +189,13 @@ def get_static_file_list() -> list[str]:
                 # ignore hidden file
                 continue
             if f.is_file():
-                file_list.append(str(f.relative_to(static_path)))
+                # custom_url_for() compares these entries against forward-slash
+                # strings (e.g. "themes/simple/sxng-ltr.min.css"). str() of a
+                # pathlib relative path uses the OS separator (backslash on
+                # Windows), which never matches -> the theme-fallback rewrite
+                # fails -> the HTML references flat /static/<file> URLs that
+                # 404 -> unstyled UI. Normalize to forward slashes.
+                file_list.append(str(f.relative_to(static_path)).replace(os.sep, '/'))
             if f.is_dir():
                 _walk(f)
 

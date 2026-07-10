@@ -1,0 +1,52 @@
+# SearXNG settings for NATIVE (non-Docker) runs.
+#
+# Identical to settings.yml except the YaCy engine URL points at
+# http://localhost:8090 instead of the Docker-internal http://yacy:8090 hostname,
+# which SearXNG cannot resolve when running natively on the host.
+#
+# run-native.ps1 / run-native.sh copy THIS file into place for native runs;
+# docker-compose.yml mounts settings.yml for Docker runs. So both modes work
+# with zero manual edits.
+
+use_default_settings: true
+
+server:
+  secret_key: "CHANGE_ME_TO_A_LONG_RANDOM_STRING"   # required, or SearXNG won't start
+  bind_address: "0.0.0.0"
+  port: 8080
+  image_proxy: false
+  limiter: false
+  public_instance: false
+
+search:
+  formats: [html, json, csv]   # enable the JSON API the agent uses
+
+outgoing:
+  request_timeout: 8.0
+  max_request_timeout: 15.0
+
+engines:
+  # --- Our own YaCy index, routed through SearXNG on every query. ---
+  # Native: YaCy runs on the host at http://localhost:8090 (not the Docker `yacy` service name).
+  - name: yacy (local)
+    engine: json_engine
+    shortcut: ycy
+    categories: general
+    paging: false
+    enable_http: true   # SearXNG disables plain http:// by default; YaCy is on http://localhost:8090
+    search_url: "http://localhost:8090/yacysearch.json?query={query}&resource=local&maximumRecords=20&contentdom=text&nav=none"
+    results_query: channels/items
+    url_query: link
+    title_query: title
+    content_query: description
+    timeout: 6.0
+    weight: 1.5
+
+  - name: google
+    disabled: true
+  - name: google images
+    disabled: true
+  - name: google news
+    disabled: true
+  - name: google videos
+    disabled: true
